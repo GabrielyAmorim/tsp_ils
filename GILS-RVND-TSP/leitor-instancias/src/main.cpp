@@ -89,10 +89,7 @@ solution construcao(Data& data){
         s.sequence.insert(s.sequence.begin() + pos, k);    
  
         // Remove a escolhida da CL
-        auto it = find(CL.begin(), CL.end(), k);
-        if(it != CL.end()){
-            CL.erase(it);
-        }
+        CL.erase(find(CL.begin(), CL.end(), k));
     }
 
     // Custo completo da rota (custo final)
@@ -112,16 +109,16 @@ bool bestImprovementSwap(solution& s, Data& data){
     int best_i = 0, best_j = 0;
     int n = s.sequence.size();
 
-    for(int i = 1; i < n - 2; i++){
+    for(int i = 1; i < n - 1; i++){
         for(int j = i + 2; j < n - 1; j++){
             double delta = - data.getDistance(s.sequence[i - 1], s.sequence[i])
                            - data.getDistance(s.sequence[i], s.sequence[i + 1])
-                           + data.getDistance(s.sequence[i - 1], s.sequence[j])
-                           + data.getDistance(s.sequence[j], s.sequence[i + 1])
                            - data.getDistance(s.sequence[j - 1], s.sequence[j])
                            - data.getDistance(s.sequence[j], s.sequence[j + 1])
                            + data.getDistance(s.sequence[j - 1], s.sequence[i])
-                           + data.getDistance(s.sequence[i], s.sequence[j + 1]);
+                           + data.getDistance(s.sequence[i], s.sequence[j + 1])
+                           + data.getDistance(s.sequence[i - 1], s.sequence[j])
+                           + data.getDistance(s.sequence[j], s.sequence[i + 1]);
 
             if(delta < bestDelta){
                 bestDelta = delta;
@@ -149,7 +146,7 @@ bool bestImprovement2Opt(solution& s, Data& data){
     int n = s.sequence.size();
 
 
-    for(int i = 1; i < n - 2; i++){
+    for(int i = 1; i < n - 1; i++){
         for(int j = i + 2; j < n - 1; j++){
             double delta = - data.getDistance(s.sequence[i], s.sequence[i + 1])
                            - data.getDistance(s.sequence[j], s.sequence[j + 1])
@@ -177,11 +174,11 @@ bool bestImprovement2Opt(solution& s, Data& data){
 // Remove um bloco de tamanho l e insere-o em outra posição
 bool bestImprovementOrOpt(solution& s, Data& data, int l){
     double bestDelta = 0.0;
-    int best_i = -1, best_j = -1;
+    int best_i = 0, best_j = 0;
     int n = s.sequence.size();
 
     for(int i = 1; i <= n - l - 1; i++){
-        for(int j = 1; j <= n - l - 1; j++){
+        for(int j = 1; j <= n - l; j++){
             
             // Verifica sobreposição
             if(j >= i && j <= i + l - 1) continue;
@@ -204,7 +201,7 @@ bool bestImprovementOrOpt(solution& s, Data& data, int l){
         }
     }
 
-    if(bestDelta < 0 && best_i != -1 && best_j != -1){
+    if(bestDelta < 0){
         // Extrai o bloco
         vector<int> bloco;
         for(int k = 0; k < l; k++){
@@ -267,22 +264,16 @@ void buscaLocal(solution& s, Data& data){
 
 solution perturbacao(solution best, Data& data){
     solution copia = best;
-    int n = copia.sequence.size();
+    int n = copia.sequence.size() - 1;
     
     // Tamanhos dos blocos
-    int maxBlock = max(2, n / 10);
+    int maxBlock = max(2, (int)ceil(n / 10.0));
     int tamanho1 = 2 + rand() % (maxBlock - 1);
     int tamanho2 = 2 + rand() % (maxBlock - 1);
     
-    // Verifica se é possível fazer a perturbação
-    int espacoMinimo = tamanho1 + tamanho2 + 3;  
-    if (n < espacoMinimo + 2) { 
-        return copia;
-    }
-    
     // Calcula pos1 
     int maxPos1 = n - tamanho1 - tamanho2 - 3;
-    int pos1 = 1 + rand() % maxPos1;  // maxPos1 >= 1 garantido pela verificação acima
+    int pos1 = 1 + rand() % maxPos1;
     
     // Calcula pos2 
     int minPos2 = pos1 + tamanho1 + 1;
@@ -301,6 +292,8 @@ solution perturbacao(solution best, Data& data){
     novaSequencia.insert(novaSequencia.end(), bloco1.begin(), bloco1.end());
     novaSequencia.insert(novaSequencia.end(), copia.sequence.begin() + pos2 + tamanho2, copia.sequence.end());
     
+    copia.sequence = novaSequencia;
+
     // Recalcula o custo
     copia.cost = 0.0;
     for (int i = 0; i < n - 1; i++){
