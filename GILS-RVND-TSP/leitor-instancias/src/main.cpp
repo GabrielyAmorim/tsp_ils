@@ -92,7 +92,7 @@ solution construcao(Data& data){
         CL.erase(find(CL.begin(), CL.end(), k));
     }
 
-    // Custo completo da rota (custo final)
+    // Custo
     s.cost = 0.0;
     for(int i = 0; i < (int)s.sequence.size() - 1; i++){
         s.cost += data.getDistance(s.sequence[i], s.sequence[i + 1]); 
@@ -128,7 +128,6 @@ bool bestImprovementSwap(solution& s, Data& data){
         }
     }
 
-    // Aplica o movimento
      if(bestDelta < 0){
         swap(s.sequence[best_i], s.sequence[best_j]);
         s.cost += bestDelta;
@@ -145,7 +144,6 @@ bool bestImprovement2Opt(solution& s, Data& data){
     int best_i = 0, best_j = 0;
     int n = s.sequence.size();
 
-
     for(int i = 1; i < n - 1; i++){
         for(int j = i + 2; j < n - 1; j++){
             double delta = - data.getDistance(s.sequence[i], s.sequence[i + 1])
@@ -161,7 +159,6 @@ bool bestImprovement2Opt(solution& s, Data& data){
         }
     }
 
-    // Aplicando o movimento
     if(bestDelta < 0){
         reverse(s.sequence.begin() + best_i + 1, s.sequence.begin() + best_j + 1);
         s.cost += bestDelta;
@@ -233,23 +230,23 @@ void buscaLocal(solution& s, Data& data){
     bool improved = false;
 
     while(!NL.empty()){
-        int v = rand() % NL.size(); // Escolhe uma vizinhança aleatória para testar
+        int v = rand() % NL.size();
 
         switch(NL[v]){
             case 1:
-                improved = bestImprovementSwap(s, data); // SWAP
+                improved = bestImprovementSwap(s, data); 
                 break;
             case 2:
-                improved = bestImprovement2Opt(s, data); // 2-OPT
+                improved = bestImprovement2Opt(s, data); 
                 break;
             case 3:
-                improved = bestImprovementOrOpt(s, data, 1); // REINSERTION
+                improved = bestImprovementOrOpt(s, data, 1); 
                 break;
             case 4:
-                improved = bestImprovementOrOpt(s, data, 2); // OR-OPT-2
+                improved = bestImprovementOrOpt(s, data, 2);
                 break;
             case 5:
-                improved = bestImprovementOrOpt(s, data, 3); // OR-OPT-3
+                improved = bestImprovementOrOpt(s, data, 3);
                 break;           
         }
 
@@ -294,12 +291,10 @@ solution perturbacao(solution best, Data& data){
     
     copia.sequence = novaSequencia;
 
-    // Recalcula o custo
     copia.cost = 0.0;
-    for (int i = 0; i < n - 1; i++){
+    for (int i = 0; i < n; i++){
         copia.cost += data.getDistance(copia.sequence[i], copia.sequence[i + 1]);
     }
-    copia.cost += data.getDistance(copia.sequence[n - 1], copia.sequence[0]);
     
     return copia;
 }
@@ -358,11 +353,12 @@ int main(int argc, char** argv){
     cout << "\nExecutando ILS para " << n << " cidades..." << endl;
     solution bestSolution = ILS(maxIter, maxIterILS, data);
     
-    cout << "Melhor solucao encontrada: ";
+    cout << "Melhor solucao encontrada: 0 -> ";
     for (int i = 0; i < (int)n; i++){
         cout << bestSolution.sequence[i] << " -> ";
     }
-    cout << bestSolution.sequence[0] << endl;
+    cout << bestSolution.sequence[0] << " -> 0" << endl;
+
     cout << "Custo da melhor solucao: " << bestSolution.cost << endl;
 
     auto end = chrono::high_resolution_clock::now();
