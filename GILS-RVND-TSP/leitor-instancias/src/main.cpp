@@ -44,23 +44,20 @@ vector <insertionInfo> calcularCustoInsercao(solution& s, vector<int>& CL, Data&
 // Função Construção (GRASP)
 solution construcao(Data& data){
     solution s;
-    vector<int> CL; // Candidate List (cidades a serem inseridas)
+    vector<int> CL; // Candidate List
 
-    // Preenche a CL com todas as cidades
-    for(int i = 1; i <= data.getDimension(); i++){
+    for(int i = 2; i <= data.getDimension(); i++){
         CL.push_back(i);
     }
 
-    random_shuffle(CL.begin(), CL.end()); //Embaralha a CL
+    random_shuffle(CL.begin(), CL.end());
 
-    // Cria o subtour inicial com as quatro primeiras cidades  
+    s.sequence.push_back(1);
     s.sequence.push_back(CL[0]);
     s.sequence.push_back(CL[1]);
     s.sequence.push_back(CL[2]);
-    s.sequence.push_back(CL[3]);
-    s.sequence.push_back(CL[0]);
+    s.sequence.push_back(1);
 
-    // Remove as cidades já usadas
     for(int i = 0; i < 4; i++){
         CL.erase(CL.begin());
     }
@@ -85,14 +82,11 @@ solution construcao(Data& data){
         int k = custoInsercao[selecionado].noInserido;
         int pos = custoInsercao[selecionado].arestaRemovida + 1;
 
-        // Insere a escolhida
         s.sequence.insert(s.sequence.begin() + pos, k);    
  
-        // Remove a escolhida da CL
         CL.erase(find(CL.begin(), CL.end(), k));
     }
 
-    // Custo
     s.cost = 0.0;
     for(int i = 0; i < (int)s.sequence.size() - 1; i++){
         s.cost += data.getDistance(s.sequence[i], s.sequence[i + 1]); 
@@ -110,15 +104,24 @@ bool bestImprovementSwap(solution& s, Data& data){
     int n = s.sequence.size();
 
     for(int i = 1; i < n - 1; i++){
-        for(int j = i + 2; j < n - 1; j++){
-            double delta = - data.getDistance(s.sequence[i - 1], s.sequence[i])
-                           - data.getDistance(s.sequence[i], s.sequence[i + 1])
-                           - data.getDistance(s.sequence[j - 1], s.sequence[j])
-                           - data.getDistance(s.sequence[j], s.sequence[j + 1])
-                           + data.getDistance(s.sequence[j - 1], s.sequence[i])
-                           + data.getDistance(s.sequence[i], s.sequence[j + 1])
-                           + data.getDistance(s.sequence[i - 1], s.sequence[j])
-                           + data.getDistance(s.sequence[j], s.sequence[i + 1]);
+        for(int j = i + 1; j < n - 1; j++){
+            double delta;
+            
+            if(j == i + 1){
+                delta = - data.getDistance(s.sequence[i - 1], s.sequence[i])
+                        - data.getDistance(s.sequence[j], s.sequence[j + 1])
+                        + data.getDistance(s.sequence[i - 1], s.sequence[j])
+                        + data.getDistance(s.sequence[i], s.sequence[j + 1]);
+            } else{
+                delta = - data.getDistance(s.sequence[i - 1], s.sequence[i])
+                        - data.getDistance(s.sequence[i], s.sequence[i + 1])
+                        - data.getDistance(s.sequence[j - 1], s.sequence[j])
+                        - data.getDistance(s.sequence[j], s.sequence[j + 1])
+                        + data.getDistance(s.sequence[j - 1], s.sequence[i])
+                        + data.getDistance(s.sequence[i], s.sequence[j + 1])
+                        + data.getDistance(s.sequence[i - 1], s.sequence[j])
+                        + data.getDistance(s.sequence[j], s.sequence[i + 1]); 
+            }                      
 
             if(delta < bestDelta){
                 bestDelta = delta;
@@ -137,8 +140,7 @@ bool bestImprovementSwap(solution& s, Data& data){
     return false;
 }
 
-
-// Remove duas arestas não adjacentes e reconecta os segmentos invertidamente
+// Remove duas arestas nao adjacentes e reconecta o segmento invertidamente
 bool bestImprovement2Opt(solution& s, Data& data){
     double bestDelta = 0.0;
     int best_i = 0, best_j = 0;
@@ -309,7 +311,7 @@ solution ILS(int maxIter, int maxIterIls, Data& data){
         solution best = s;
         int iterIls = 0;
 
-        while(iterIls <= maxIterIls){
+        while(iterIls < maxIterIls){
             buscaLocal(s, data);
             
             if(s.cost < best.cost){
